@@ -99,9 +99,10 @@ class TranslationService:
                 target_lang_final
             )
             if save_to_memory:
+                clean_translation = self.text_processor.strip_term_tags(translated)
                 self.translation_memory.add_entry(
                     source=text,
-                    target=translated,
+                    target=clean_translation,
                     source_lang=source_lang_final,
                     target_lang=target_lang_final,
                     preferred=mark_preferred

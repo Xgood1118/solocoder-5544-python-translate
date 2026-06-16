@@ -17,8 +17,49 @@ class TextProcessor:
     def is_html(self, text):
         if not text:
             return False
-        html_pattern = r'<\s*[a-zA-Z][^>]*>'
-        return bool(re.search(html_pattern, text.strip()[:500]))
+        sample = text.strip()[:1000]
+        if not sample:
+            return False
+        sample_no_term = re.sub(r'</?term>', '', sample, flags=re.IGNORECASE)
+        if sample_no_term == sample:
+            pass
+        html_tags = [
+            '<div ', '<div>', '</div>',
+            '<p ', '<p>', '</p>',
+            '<span ', '<span>', '</span>',
+            '<a ', '<a>', '</a>',
+            '<ul>', '</ul>', '<li>', '</li>',
+            '<table>', '</table>', '<tr>', '<td>', '<th>',
+            '<br', '<hr', '<img ', '<input ',
+            '<h1>', '<h2>', '<h3>', '<h4>', '<h5>', '<h6>',
+            '<strong>', '</strong>', '<b>', '</b>',
+            '<em>', '</em>', '<i>', '</i>',
+            '<u>', '</u>',
+            '<blockquote>', '</blockquote>',
+            '<code>', '</code>', '<pre>', '</pre>',
+            '<html>', '</html>', '<body>', '</body>',
+            '<head>', '</head>', '<title>', '</title>',
+            '<meta ', '<link ', '<script>', '</script>',
+            '<style>', '</style>',
+            '&nbsp;', '&amp;', '&lt;', '&gt;', '&quot;'
+        ]
+        sample_lower = sample_no_term.lower()
+        for tag in html_tags:
+            if tag in sample_lower:
+                return True
+        open_tags = re.findall(r'<\s*([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>', sample_no_term)
+        close_tags = re.findall(r'</\s*([a-zA-Z][a-zA-Z0-9]*)\s*>', sample_no_term)
+        if len(open_tags) >= 2 and len(close_tags) >= 1:
+            tag_set = set(t.lower() for t in open_tags)
+            close_set = set(t.lower() for t in close_tags)
+            if tag_set & close_set:
+                return True
+        return False
+
+    def strip_term_tags(self, text):
+        if not text:
+            return text
+        return re.sub(r'</?term>', '', text, flags=re.IGNORECASE)
 
     def is_empty_or_numeric(self, text):
         if not text:
